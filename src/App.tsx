@@ -35,10 +35,11 @@ function App() {
           rotation: [-0.4, 0.55, 0.2],
         }}>
         <ambientLight intensity={0.1} color="white" />
-        <directionalLight color="white" position={[0, 12, 12]} />
+        <directionalLight color="white" position={[40, 40, 100]} />
         <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} />
         {ifc && <primitive object={ifc} />}
-        <gridHelper />
+        <gridHelper args={[100, 100]} />
+        <axesHelper args={[25]} />
       </Canvas>
     </>
   );
