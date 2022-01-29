@@ -36,8 +36,7 @@ function App() {
           zoom: 1,
           position: [1, 8, 20],
           rotation: [-0.4, 0.55, 0.2],
-        }}
-      >
+        }}>
         <ambientLight intensity={0.1} color="white" />
         <directionalLight color="white" position={[40, 40, 100]} />
         <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} />
