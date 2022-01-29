@@ -39,7 +39,7 @@ export default function IFCContainer({ ifc, manager }: IFCContainerProps) {
 
     setHighlightedModel({ id: modelID });
 
-    manager.state.models[modelID] = ifc;
+    manager.state.models[modelID] = intersection.object;
 
     manager.createSubset({
       modelID,
