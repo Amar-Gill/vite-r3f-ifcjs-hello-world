@@ -4,11 +4,14 @@ import React, { useState } from 'react';
 import { IFCModel } from 'web-ifc-three/IFC/components/IFCModel';
 import { IFCLoader } from 'web-ifc-three/IFCLoader';
 
+import IFCContainer from './IFCContainer';
+
 function App() {
   const [ifc, setIfc] = useState<IFCModel>();
 
   const ifcLoader = new IFCLoader();
-  ifcLoader.ifcManager.setWasmPath('resources/');
+  const manager = ifcLoader.ifcManager;
+  manager.setWasmPath('resources/');
 
   function handleFileUpload(event: Event) {
     const file = event.target.files[0];
@@ -37,7 +40,7 @@ function App() {
         <ambientLight intensity={0.1} color="white" />
         <directionalLight color="white" position={[40, 40, 100]} />
         <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} />
-        {ifc && <primitive object={ifc} />}
+        <IFCContainer ifc={ifc} manager={manager} />
         <gridHelper args={[100, 100]} />
         <axesHelper args={[25]} />
       </Canvas>
