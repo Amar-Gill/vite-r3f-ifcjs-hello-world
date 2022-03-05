@@ -1,17 +1,25 @@
 import { useBVH } from '@react-three/drei';
-import { useThree } from '@react-three/fiber';
+import { useLoader, useThree } from '@react-three/fiber';
 import React, { useRef, useState } from 'react';
 import { Intersection, Material, MeshLambertMaterial } from 'three';
 import { IFCManager } from 'web-ifc-three/IFC/components/IFCManager';
 import { IFCModel } from 'web-ifc-three/IFC/components/IFCModel';
+import { IFCLoader } from 'web-ifc-three/IFCLoader';
+
+let manager: IFCManager;
 
 type IFCContainerProps = {
-  ifc?: IFCModel;
-  manager: IFCManager;
+  filePath: string;
 };
 
-export default function IFCContainer({ ifc, manager }: IFCContainerProps) {
+export default function IFCContainer({ filePath }: IFCContainerProps) {
   const [highlightedModel, setHighlightedModel] = useState({ id: -1 });
+
+  const ifc = useLoader(IFCLoader, filePath, (loader) => {
+    const { ifcManager } = loader as IFCLoader;
+    ifcManager.setWasmPath('resources/');
+    manager = ifcManager;
+  });
 
   const mesh = useRef(null!);
   useBVH(mesh);
@@ -25,21 +33,17 @@ export default function IFCContainer({ ifc, manager }: IFCContainerProps) {
     depthTest: false,
   });
 
-  function handleDblClick(event: Intersection<IFCModel<Event>>) {
-    if (Object.keys(manager.state.models).length) {
-      manager.removeSubset(highlightedModel.id, highlightMaterial);
-    }
+  function handleDblClick(event: Intersection<IFCModel>) {
+    manager.removeSubset(highlightedModel.id, highlightMaterial);
     highlight(event, highlightMaterial);
   }
 
-  function highlight(intersection: Intersection<IFCModel<Event>>, material: Material) {
+  function highlight(intersection: Intersection<IFCModel>, material: Material) {
     const { faceIndex } = intersection;
     const { modelID, geometry } = intersection.object;
     const id = manager.getExpressId(geometry, faceIndex);
 
     setHighlightedModel({ id: modelID });
-
-    manager.state.models[modelID] = intersection.object;
 
     manager.createSubset({
       modelID,
@@ -50,7 +54,5 @@ export default function IFCContainer({ ifc, manager }: IFCContainerProps) {
     });
   }
 
-  return ifc ? (
-    <primitive ref={mesh} object={ifc} onDoubleClick={handleDblClick} />
-  ) : null;
+  return <primitive ref={mesh} object={ifc} onDoubleClick={handleDblClick} />;
 }
