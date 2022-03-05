@@ -1,6 +1,6 @@
 import { useBVH } from '@react-three/drei';
 import { useLoader, useThree } from '@react-three/fiber';
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { Intersection, Material, MeshLambertMaterial } from 'three';
 import { IFCManager } from 'web-ifc-three/IFC/components/IFCManager';
 import { IFCModel } from 'web-ifc-three/IFC/components/IFCModel';
@@ -8,14 +8,22 @@ import { IFCLoader } from 'web-ifc-three/IFCLoader';
 
 let manager: IFCManager;
 
+const highlightMaterial = new MeshLambertMaterial({
+  transparent: true,
+  opacity: 0.6,
+  color: 0xff00ff,
+  depthTest: false,
+});
+
 type IFCContainerProps = {
   filePath: string;
 };
 
 export default function IFCContainer({ filePath }: IFCContainerProps) {
-  const [highlightedModel, setHighlightedModel] = useState({ id: -1 });
+  const highlightedModelId = useRef(-1);
 
   const ifc = useLoader(IFCLoader, filePath, (loader) => {
+    manager && manager.removeSubset(highlightedModelId.current, highlightMaterial);
     const { ifcManager } = loader as IFCLoader;
     ifcManager.setWasmPath('resources/');
     manager = ifcManager;
@@ -26,15 +34,8 @@ export default function IFCContainer({ filePath }: IFCContainerProps) {
 
   const scene = useThree((state) => state.scene);
 
-  const highlightMaterial = new MeshLambertMaterial({
-    transparent: true,
-    opacity: 0.6,
-    color: 0xff00ff,
-    depthTest: false,
-  });
-
   function handleDblClick(event: Intersection<IFCModel>) {
-    manager.removeSubset(highlightedModel.id, highlightMaterial);
+    manager.removeSubset(highlightedModelId.current, highlightMaterial);
     highlight(event, highlightMaterial);
   }
 
@@ -43,7 +44,7 @@ export default function IFCContainer({ filePath }: IFCContainerProps) {
     const { modelID, geometry } = intersection.object;
     const id = manager.getExpressId(geometry, faceIndex);
 
-    setHighlightedModel({ id: modelID });
+    highlightedModelId.current = modelID;
 
     manager.createSubset({
       modelID,
